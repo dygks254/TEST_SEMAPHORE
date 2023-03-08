@@ -21,7 +21,8 @@ pipeline {
             ,'total_q' : (params.semaphore).toInteger()
             ,'r_file' : "${env.WORKSPACE}/build/running.txt"
             ,'add_list' : "${env.WORKSPACE}/build/slave_add"
-            ,'rm_list' : "${env.WORKSPACE}/build/slave_rm"  
+            ,'rm_list' : "${env.WORKSPACE}/build/slave_rm"
+            ,'status'  : "${env.WORKSPACE}/build/status.txt"
           ])
           configuration_file = "${env.WORKSPACE}/python_source.json"
           print(configuration_file)
