@@ -37,7 +37,7 @@ pipeline{
           cleanWs()
 
           def tmp_job_name = "${JOB_NAME.substring(JOB_NAME.lastIndexOf('/') + 1, JOB_NAME.length())}"
-          semaphore_file_name = "${params.projcet}_${tmp_job_name}"
+          semaphore_file_name = "${params.projcet}_${tmp_job_name}_${enc.BUILD_NUMBER}"
 
           def buf_cmd_list = readJSON file: params.cmd_json_path
           tmp_command.addAll(buf_cmd_list)
