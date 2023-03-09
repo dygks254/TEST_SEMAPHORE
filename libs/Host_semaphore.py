@@ -3,7 +3,7 @@ import subprocess
 import json
 import sys, os, shutil, re
 import time
-
+import copy
 
 class Configuration():
   configuration : dict
@@ -15,6 +15,10 @@ class Configuration():
   def update(self, data:dict):
     self.configuration = data
     return data
+
+  @classmethod
+  def data(self):
+    return copy.deepcopy(self.configuration)
 
 def parser():
   parse = argparse.ArgumentParser("Start semaphore host")
@@ -70,7 +74,35 @@ def update_list(args : parser, source_data : dict, type : str):
   # with open(sema_data['q_file'], 'w') as f_q:
 
 
+def distribute_sem( args : parser, source_data: dict):
 
+  if Configuration.configuration['total_q'] - Configuration.configuration['running_q'] == 0:
+    return
+
+  tmp_dict = Configuration.data()
+
+  for key, value in Configuration.configuration['slave_list'].items():
+    print(f"{key} : {value} ")
+    key_file = f"{key}/semaphore_reg"
+    if not os.path.isfile(key_file) :
+      av_q =  Configuration.configuration['total_q'] - Configuration.configuration['running_q']
+      if av_q >= value:
+        trans_q = value
+        remain_jobs_q = 0
+        tmp_dict['slave_list'].pop(key)
+      else:
+        trans_q = av_q
+        remain_jobs_q = value - av_q
+        tmp_dict['slave_list'][key] = remain_jobs_q
+      tmp_dict['running_q'] += trans_q
+      with open(key_file, 'w') as f_reg:
+        json.dump([trans_q], f_reg)
+
+    else:
+      print(f"--- file exist {key_file}")
+
+  Configuration.configuration.update(tmp_dict)
+  update_json(file=source_data['q_file'], buf_configuration=Configuration.configuration)
 
 
 def main( args : parser, source_data : dict ):
@@ -92,13 +124,18 @@ def main( args : parser, source_data : dict ):
 
   running_status = "TRUE"
   while( running_status != "FALSE" ):
-    time.sleep(3)
+    time.sleep(2)
     write_file(file_path=source_data['status'], text="BLOCK")
+    time.sleep(1)
     update_list(args=args, source_data=source_data, type="add")
     update_list(args=args, source_data=source_data, type="rm")
     with open(source_data['r_file'], 'r') as f_status:
       running_status =  re.findall(r'\w+', f_status.readline())[0]
-      print(running_status)
+      if running_status == "FALSE":
+        print("Host semahore Done")
+        return 0
+
+    distribute_sem(args=args, source_data=source_data)
 
     write_file(file_path=source_data['status'], text="OPEN")
 

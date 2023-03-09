@@ -19,7 +19,7 @@ pipeline{
 
   parameters{
       string(name : 'cmd_json_path', defaultValue : '/home/yohan/PROJECT/2.JENKINS/STAGE/test_data_dir/tmp_data.json' )
-      string(name : 'host_path', defaultValue : '/var/lib/jenkins/workspace/TEST_SEM/1.HOST_SEMAPHORE')
+      string(name : 'host_path', defaultValue : '/var/lib/jenkins/workspace/TEST_SEM/2.HOST')
   }
 
   stages{
@@ -35,7 +35,7 @@ pipeline{
           json = JsonOutput.prettyPrint(json)
           writeFile(file: "${env.WORKSPACE}/cmd_list.json", text : json)
 
-          writeFile(file: 'test1', text: "0", encoding: "UTF-8")
+          writeFile(file: 'semaphore_reg', text: "0", encoding: "UTF-8")
         }
       }
     }
@@ -55,9 +55,9 @@ pipeline{
               script{
                 waitUntil{
                   sleep(5)
-                  if ( fileExists('test1') ) {
-                    def tmp_file = readFile('test1')
-                    sh("rm test1")
+                  if ( fileExists('semaphore_reg') ) {
+                    def tmp_file = readFile('semaphore_reg')
+                    sh("rm semaphore_reg")
                     def res = Integer.parseInt(tmp_file.trim())
                     ca.updatenumber(number = res)
                   }
@@ -93,6 +93,11 @@ pipeline{
                 stage("Running_command_${i2}"){
                   script{
                     print("in running :: ${tmp_command[i2-1]}")
+                  }
+                }
+                stage("Update_DB_${i2}"){
+                  script{
+                    print("Update DB data to Dashboard")
                   }
                 }
               }
