@@ -41,9 +41,7 @@ pipeline {
         script{
           sh"""
             #!/bin/bash
-            bash
-            source /usr/local/Modules/init/bash
-            source /usr/local/Modules/init/bash_completion
+            source ~/.bashrc
             module load python/3.7.1
             python3.7 libs/Host_semaphore.py --source ${configuration_file}
           """
