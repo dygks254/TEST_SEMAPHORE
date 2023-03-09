@@ -21,7 +21,7 @@ class Configuration():
 
 def parser():
   parse = argparse.ArgumentParser("Start semaphore host")
-  parse.add_argument("--source", type=argparse.FileType('r'), help="Source file path")
+  parse.add_argument("--source", type=argparse.FileType('r'), default=None, help="Source file path")
   parse.add_argument("--running", type=int, default=0, help="Source file path")
   return parse
 
@@ -138,6 +138,20 @@ def main( args : parser, source_data : dict ):
 
 if __name__=="__main__":
   args = parser().parse_args()
-  source_data = json.loads(args.source.read())
+
+  if args.source == None:
+    from pathlib import Path
+    top_path = Path(os.path.dirname(os.path.realpath(__file__))).parent
+    source_data = {
+      "build_path": f"{top_path}/build",
+      "q_file": f"{top_path}/build/semaphore_q.json",
+      "total_q": 10,
+      "r_file": f"{top_path}/build/running.txt",
+      "add_list": f"{top_path}/build/slave_add",
+      "rm_list": f"{top_path}/build/slave_rm",
+      "status": f"{top_path}/build/status.txt"
+    }
+  else :
+    source_data = json.loads(args.source.read())
   main( args=args, source_data=source_data )
 
