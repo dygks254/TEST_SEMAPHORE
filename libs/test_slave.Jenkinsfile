@@ -3,6 +3,7 @@ import java.io.File
 
 tmp_command = []
 semaphore_file_name = ""
+host_path = ""
 
 class AV_semaphore{
   int av_semaphore2 = 0
@@ -20,13 +21,24 @@ def write_json( String file_path , Map data_json ){
   writeFile(file: file_path, text : json)
 }
 
+def wait_block(){
+  waitUntil{
+    def running_status = readFile(file="${host_path}/build/status.txt")
+    if( running_status.logs.contains('OPEN') ){
+      return false
+    }
+    return true
+  }
+}
+
 pipeline{
 
   agent any
 
   parameters{
-      string(name : 'cmd_json_path', defaultValue : '/home/yohan/PROJECT/2.JENKINS/STAGE/test_data_dir/tmp_data.json' )
-      string(name : 'host_path', defaultValue : '/var/lib/jenkins/workspace/TEST_SEM/2.HOST')
+      string(name : 'cmd_json_path', defaultValue : "/home/yohan/PROJECT/Jenkins/TEST_SEMAPHORE/libs/test_cm.json" )
+      string(name : 'host_job', defaultValue : '1.HOST_SEMAPHORE')
+      // string(name : 'host_path', defaultValue : '/var/lib/jenkins/workspace/TEST_SEM/2.HOST')
       string(name : 'project', defaultValue : 'None')
   }
 
@@ -35,14 +47,42 @@ pipeline{
       steps{
         script{
           cleanWs()
+          checkout([
+            $class: 'GitSCM'
+          , branches: [[name: 'MGA']]
+          , userRemoteConfigs: [[url: env.GIT_URL]]])
 
           def tmp_job_name = "${JOB_NAME.substring(JOB_NAME.lastIndexOf('/') + 1, JOB_NAME.length())}"
-          semaphore_file_name = "${params.projcet}_${tmp_job_name}_${enc.BUILD_NUMBER}"
+          semaphore_file_name = "${params.projcet}_${tmp_job_name}_${env.BUILD_NUMBER}"
 
           def buf_cmd_list = readJSON file: params.cmd_json_path
           tmp_command.addAll(buf_cmd_list)
 
           write_json(file_path = "${env.WORKSPACE}/cmd_list.json", data_json = [ 'cmd_list' :[tmp_command]])
+        }
+      }
+    }
+    stage("Host_checking"){
+      steps{
+        script{
+          waitUntil{
+            name = params.host_job
+            def items = new LinkedHashSet();
+            def job = Hudson.instance.getJob(name)
+            items.add(job);
+            if(items != null){
+              return true
+            }
+            return false
+          }
+          host_path = sh(returnStdout: true, script: """
+            #!/bin/zsh
+            source /tools/MODULECMD/Modules/init/zsh
+            module load python/3.7.1
+            python3.7 ${env.WORKSPACE}/libs/Find_host_path.py --host=${params.host_name} --workspace=${env.WORKSPACE} --job_name=${env.JOB_NAME}
+          """).trim()
+          print("Host path :: ${host_path}")
+          sleep(10)
         }
       }
     }
@@ -59,7 +99,7 @@ pipeline{
             stage("checking_semaphore"){
               stage("register_host"){
                 script{
-                  write_json( file_path = "${params.host_path}/build/slave_add/${semaphore_file_name}", data_json = [ "${env.WORKSPACE}" : tmp_command.size() ])
+                  write_json( file_path = "${host_path}/build/slave_add/${semaphore_file_name}", data_json = [ "${env.WORKSPACE}" : tmp_command.size() ])
                 }
               }
               stage("update"){
@@ -107,8 +147,9 @@ pipeline{
                 }
                 stage("Update_DB_${i2}"){
                   script{
+                    wait_block()
                     print("Update DB data to Dashboard")
-                    write_json( file_path = "${params.host_path}/build/slave_rm/${semaphore_file_name}_${i2}", data_json = ["${env.WORKSPACE}" : 1])
+                    write_json( file_path = "${host_path}/build/slave_rm/${semaphore_file_name}_${i2}", data_json = ["${env.WORKSPACE}" : 1])
                   }
                 }
               }

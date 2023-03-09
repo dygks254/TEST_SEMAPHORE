@@ -49,4 +49,13 @@ pipeline {
       }
     }
   }
+  post {
+        always{
+          script{
+              print("${env.WORKSPACE}/build/running.txt")
+              writeFile(file : "${env.WORKSPACE}/build/running.txt", text : 'FALSE')
+          }
+        }
+  }
+
 }
