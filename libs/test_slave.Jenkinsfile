@@ -2,6 +2,7 @@ import groovy.json.*
 import java.io.File
 
 tmp_command = []
+semaphore_file_name = ""
 
 class AV_semaphore{
   int av_semaphore2 = 0
@@ -13,6 +14,12 @@ class AV_semaphore{
   }
 }
 
+def write_json( String file_path , Map data_json ){
+  def json = JsonOutput.toJson( data_json )
+  json = JsonOutput.prettyPrint(json)
+  writeFile(file: file_path, text : json)
+}
+
 pipeline{
 
   agent any
@@ -20,6 +27,7 @@ pipeline{
   parameters{
       string(name : 'cmd_json_path', defaultValue : '/home/yohan/PROJECT/2.JENKINS/STAGE/test_data_dir/tmp_data.json' )
       string(name : 'host_path', defaultValue : '/var/lib/jenkins/workspace/TEST_SEM/2.HOST')
+      string(name : 'project', defaultValue : 'None')
   }
 
   stages{
@@ -28,14 +36,13 @@ pipeline{
         script{
           cleanWs()
 
+          def tmp_job_name = "${JOB_NAME.substring(JOB_NAME.lastIndexOf('/') + 1, JOB_NAME.length())}"
+          semaphore_file_name = "${params.projcet}_${tmp_job_name}"
+
           def buf_cmd_list = readJSON file: params.cmd_json_path
           tmp_command.addAll(buf_cmd_list)
 
-          def json = JsonOutput.toJson( [ 'cmd_list' :[tmp_command]] )
-          json = JsonOutput.prettyPrint(json)
-          writeFile(file: "${env.WORKSPACE}/cmd_list.json", text : json)
-
-          writeFile(file: 'semaphore_reg', text: "0", encoding: "UTF-8")
+          write_json(file_path = "${env.WORKSPACE}/cmd_list.json", data_json = [ 'cmd_list' :[tmp_command]])
         }
       }
     }
@@ -46,25 +53,32 @@ pipeline{
 
           def ca = new AV_semaphore()
 
-          print("number :: ${tmp_command.size()}")
-          ca.updatenumber(number = 1)
-          print("number :: ${tmp_command.size()}")
+          print(" Command size :: ${tmp_command.size()}")
 
           tmp_cmd["0"] = {
-            stage("up"){
-              script{
-                waitUntil{
-                  sleep(5)
-                  if ( fileExists('semaphore_reg') ) {
-                    def tmp_file = readFile('semaphore_reg')
-                    sh("rm semaphore_reg")
-                    def res = Integer.parseInt(tmp_file.trim())
-                    ca.updatenumber(number = res)
+            stage("checking_semaphore"){
+              stage("register_host"){
+                script{
+                  write_json( file_path = "${params.host_path}/build/slave_add/${semaphore_file_name}", data_json = [ "${env.WORKSPACE}" : tmp_command.size() ])
+                }
+              }
+              stage("update"){
+                script{
+                  waitUntil{
+                    sleep(5)
+                    if ( fileExists('semaphore_reg') ) {
+
+                      def tmp_file = readJSON file: 'semaphore_reg'
+                      def res = tmp_file[0]
+                      sh("rm semaphore_reg")
+                      ca.updatenumber(number = res)
+                      print("Update available semaphore from host ${res}")
+                    }
+                    if(ca.get_sem() >= tmp_command.size()){
+                      return true
+                    }
+                    return false
                   }
-                  if(ca.get_sem() >= tmp_command.size()){
-                    return true
-                  }
-                  return false
                 }
               }
             }
@@ -80,14 +94,10 @@ pipeline{
                 stage("wating_${i2}"){
                   script{
                     waitUntil{
-                      print( "${ca.get_sem()}  ::  ${i2}" )
-                      if( ca.get_sem() >= i2){
-                        return true
-                      }
+                      if( ca.get_sem() >= i2){ return true }
                       return false
-                      return true
                     }
-                    print("in para")
+                    sleep(i2*5)
                   }
                 }
                 stage("Running_command_${i2}"){
@@ -98,6 +108,7 @@ pipeline{
                 stage("Update_DB_${i2}"){
                   script{
                     print("Update DB data to Dashboard")
+                    write_json( file_path = "${params.host_path}/build/slave_rm/${semaphore_file_name}_${i2}", data_json = ["${env.WORKSPACE}" : 1])
                   }
                 }
               }

@@ -1,9 +1,9 @@
 {
-  "build_path": "/home/yohan/PROJECT/Jenkins/TEST_SEMAPHORE/libs/build",
-  "q_file": "/home/yohan/PROJECT/Jenkins/TEST_SEMAPHORE/libs/build/semaphore_q.json",
+  "build_path": "/home/yohan/PROJECT/2.JENKINS/STAGE/TEST_SEMAPHORE/build",
+  "q_file": "/home/yohan/PROJECT/2.JENKINS/STAGE/TEST_SEMAPHORE/build/semaphore_q.json",
   "total_q": 10,
-  "r_file": "/home/yohan/PROJECT/Jenkins/TEST_SEMAPHORE/libs/build/running.txt",
-  "add_list": "/home/yohan/PROJECT/Jenkins/TEST_SEMAPHORE/libs/build/slave_add",
-  "rm_list": "/home/yohan/PROJECT/Jenkins/TEST_SEMAPHORE/libs/build/slave_rm",
-  "status": "/home/yohan/PROJECT/Jenkins/TEST_SEMAPHORE/libs/build/status.txt"
+  "r_file": "/home/yohan/PROJECT/2.JENKINS/STAGE/TEST_SEMAPHORE/build/running.txt",
+  "add_list": "/home/yohan/PROJECT/2.JENKINS/STAGE/TEST_SEMAPHORE/build/slave_add",
+  "rm_list": "/home/yohan/PROJECT/2.JENKINS/STAGE/TEST_SEMAPHORE/build/slave_rm",
+  "status": "/home/yohan/PROJECT/2.JENKINS/STAGE/TEST_SEMAPHORE/build/status.txt"
 }

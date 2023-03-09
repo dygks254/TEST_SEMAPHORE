@@ -1,7 +1,6 @@
 import argparse
-import subprocess
 import json
-import sys, os, shutil, re
+import os, shutil, re
 import time
 import copy
 
@@ -66,12 +65,10 @@ def update_list(args : parser, source_data : dict, type : str):
         if tmp_key not in Configuration.configuration['slave_list'].keys():
           Configuration.configuration['slave_list'][tmp_key] = tmp_qnum[tmp_key]
       else:
-        if tmp_key in Configuration.configuration['slave_list'].keys():
-          Configuration.configuration['slave_list'][tmp_key] = Configuration.configuration['slave_list'][tmp_key] - tmp_qnum[tmp_key]
+          Configuration.configuration['running_q'] -= tmp_qnum[tmp_key]
     os.remove(tmp_path)
 
   update_json(file=source_data['q_file'], buf_configuration=Configuration.configuration)
-  # with open(sema_data['q_file'], 'w') as f_q:
 
 
 def distribute_sem( args : parser, source_data: dict):
@@ -96,7 +93,7 @@ def distribute_sem( args : parser, source_data: dict):
         tmp_dict['slave_list'][key] = remain_jobs_q
       tmp_dict['running_q'] += trans_q
       with open(key_file, 'w') as f_reg:
-        json.dump([trans_q], f_reg)
+        json.dump([trans_q], f_reg, indent=2)
 
     else:
       print(f"--- file exist {key_file}")
