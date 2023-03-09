@@ -4,6 +4,7 @@ import java.io.File
 tmp_command = []
 semaphore_file_name = ""
 host_path = ""
+def now_q_lengh = 0
 
 class AV_semaphore{
   int av_semaphore2 = 0
@@ -23,11 +24,12 @@ def write_json( String file_path , Map data_json ){
 
 def wait_block(){
   waitUntil{
-    def running_status = readFile(file="${host_path}/build/status.txt")
-    if( running_status.logs.contains('OPEN') ){
-      return false
+    def fileContent = readFile("${host_path}/build/status.txt")
+    if (fileContent.contains('OPEN')) {
+        return false
+    } else {
+        return true
     }
-    return true
   }
 }
 
@@ -113,6 +115,7 @@ pipeline{
                       sh("rm semaphore_reg")
                       ca.updatenumber(number = res)
                       print("Update available semaphore from host ${res}")
+                      now_q_lengh+=res
                     }
                     if(ca.get_sem() >= tmp_command.size()){
                       return true
@@ -150,6 +153,7 @@ pipeline{
                     wait_block()
                     print("Update DB data to Dashboard")
                     write_json( file_path = "${host_path}/build/slave_rm/${semaphore_file_name}_${i2}", data_json = ["${env.WORKSPACE}" : 1])
+                    now_q_lengh--
                   }
                 }
               }
@@ -159,6 +163,13 @@ pipeline{
           parallel tmp_cmd
 
         }
+      }
+    }
+  }
+  post{
+    always{
+      script{
+        write_json( file_path = "${host_path}/build/slave_rm/${semaphore_file_name}_done", data_json = ["${env.WORKSPACE}" : now_q_lengh])
       }
     }
   }

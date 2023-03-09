@@ -73,7 +73,7 @@ def update_list(args : parser, source_data : dict, type : str):
 
 def distribute_sem( args : parser, source_data: dict):
 
-  if Configuration.configuration['total_q'] - Configuration.configuration['running_q'] == 0:
+  if Configuration.configuration['total_q'] - Configuration.configuration['running_q'] <= 0:
     return
 
   tmp_dict = Configuration.data()
