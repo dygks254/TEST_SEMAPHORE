@@ -13,7 +13,12 @@ pipeline {
     stage ('Initialize') {
       steps {
         cleanWs()
-        
+
+        checkout([
+            $class: 'GitSCM'
+          , branches: [[name: 'MGA']]
+          , userRemoteConfigs: [[url: env.GIT_URL]]])
+
         script{
           def json = JsonOutput.toJson([
              'build_path' : "${env.WORKSPACE}/build"
@@ -28,13 +33,20 @@ pipeline {
           print(configuration_file)
           json = JsonOutput.prettyPrint(json)
           writeFile(file: configuration_file, text : json)
-        }   
+        }
       }
     }
     stage('Start_HOST'){
       steps{
         script{
-          print("aaa")
+          sh"""
+            #!/bin/bash
+            bash
+            source /usr/local/Modules/init/bash
+            source /usr/local/Modules/init/bash_completion
+            module load python/3.7.1
+            python3.7 libs/Host_semaphore.py --source ${configuration_file}
+          """
         }
       }
     }
