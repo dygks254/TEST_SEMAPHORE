@@ -66,6 +66,7 @@ def update_list(args : parser, source_data : dict, type : str):
           Configuration.configuration['slave_list'][tmp_key] = tmp_qnum[tmp_key]
       else:
           Configuration.configuration['running_q'] -= tmp_qnum[tmp_key]
+          Configuration.configuration['dis_semaphore'][tmp_key] -= tmp_qnum[tmp_key]
     os.remove(tmp_path)
 
   update_json(file=source_data['q_file'], buf_configuration=Configuration.configuration)
@@ -92,6 +93,9 @@ def distribute_sem( args : parser, source_data: dict):
         remain_jobs_q = value - av_q
         tmp_dict['slave_list'][key] = remain_jobs_q
       tmp_dict['running_q'] += trans_q
+      if key not in [tmp_dict['dis_semaphore'].keys()]:
+        tmp_dict['dis_semaphore'][key] = 0
+      tmp_dict['dis_semaphore'][key] += trans_q
       with open(key_file, 'w') as f_reg:
         json.dump([trans_q], f_reg, indent=2)
 
@@ -115,6 +119,7 @@ def main( args : parser, source_data : dict ):
      'total_q' : source_data['total_q']
     ,'running_q' : args.running
     ,'slave_list' : {}
+    ,'dis_semaphore' : {}
   }))
 
   print(Configuration.configuration)

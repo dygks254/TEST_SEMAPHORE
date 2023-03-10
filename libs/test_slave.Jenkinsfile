@@ -38,8 +38,8 @@ pipeline{
   agent any
 
   parameters{
-      string(name : 'cmd_json_path', defaultValue : "/home/yohan/PROJECT/Jenkins/TEST_SEMAPHORE/libs/test_cm.json" )
-      string(name : 'host_job', defaultValue : '1.HOST_SEMAPHORE')
+      string(name : 'cmd_json_path', defaultValue : "./.test_file/test_cm.json" )
+      string(name : 'host_job', defaultValue : '1.GLOBAL-SEMAPHORE')
       // string(name : 'host_path', defaultValue : '/var/lib/jenkins/workspace/TEST_SEM/2.HOST')
       string(name : 'project', defaultValue : 'None')
   }
@@ -51,7 +51,7 @@ pipeline{
           cleanWs()
           checkout([
             $class: 'GitSCM'
-          , branches: [[name: 'MGA']]
+          , branches: [[name: 'MGA-312']]
           , userRemoteConfigs: [[url: env.GIT_URL]]])
 
           def tmp_job_name = "${JOB_NAME.substring(JOB_NAME.lastIndexOf('/') + 1, JOB_NAME.length())}"
@@ -79,7 +79,7 @@ pipeline{
           }
           host_path = sh(returnStdout: true, script: """
             #!/bin/zsh
-            source /tools/MODULECMD/Modules/init/zsh
+            source /usr/local/Modules/init/zsh
             module load python/3.7.1
             python3.7 ${env.WORKSPACE}/libs/Find_host_path.py --host=${params.host_name} --workspace=${env.WORKSPACE} --job_name=${env.JOB_NAME}
           """).trim()
