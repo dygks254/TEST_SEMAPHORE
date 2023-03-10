@@ -82,7 +82,7 @@ def distribute_sem( args : parser, source_data: dict):
     print(f"{key} : {value} ")
     key_file = f"{key}/semaphore_reg"
     if not os.path.isfile(key_file) :
-      av_q =  Configuration.configuration['total_q'] - Configuration.configuration['running_q']
+      av_q =  tmp_dict['total_q'] - tmp_dict['running_q']
       if av_q >= value:
         trans_q = value
         remain_jobs_q = 0
