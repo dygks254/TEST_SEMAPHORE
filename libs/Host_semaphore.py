@@ -64,6 +64,7 @@ def update_list(args : parser, source_data : dict, type : str):
       if type == "add":
         if tmp_key not in Configuration.configuration['slave_list'].keys():
           Configuration.configuration['slave_list'][tmp_key] = tmp_qnum[tmp_key]
+          Configuration.configuration['dis_semaphore'][tmp_key] = 0
       else:
           Configuration.configuration['running_q'] -= tmp_qnum[tmp_key]
           Configuration.configuration['dis_semaphore'][tmp_key] -= tmp_qnum[tmp_key]
@@ -86,16 +87,12 @@ def distribute_sem( args : parser, source_data: dict):
       av_q =  tmp_dict['total_q'] - tmp_dict['running_q']
       if av_q >= value:
         trans_q = value
-        remain_jobs_q = 0
         tmp_dict['slave_list'].pop(key)
       else:
         trans_q = av_q
-        remain_jobs_q = value - av_q
-        tmp_dict['slave_list'][key] = remain_jobs_q
-      tmp_dict['running_q'] += trans_q
-      if key not in [tmp_dict['dis_semaphore'].keys()]:
-        tmp_dict['dis_semaphore'][key] = 0
+        tmp_dict['slave_list'][key] = value - av_q
       tmp_dict['dis_semaphore'][key] += trans_q
+      tmp_dict['running_q'] += trans_q
       with open(key_file, 'w') as f_reg:
         json.dump([trans_q], f_reg, indent=2)
 

@@ -43,7 +43,7 @@ pipeline {
             #!/bin/zsh
             source /usr/local/Modules/init/zsh
             module load python/3.7.1
-            python3.7 libs/Host_semaphore.py --source ${configuration_file}
+            python3.7 libs/Host_semaphore.py --source ${configuration_file} > test_log.log
           """
         }
       }
