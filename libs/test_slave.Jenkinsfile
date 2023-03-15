@@ -34,10 +34,11 @@ def wait_block(){
 }
 
 pipeline{
-
-  agent any
-
+  agent {
+      label 'ariel'
+  }
   parameters{
+      string(name : 'test_group', defaultValue : "dummy" )
       string(name : 'cmd_json_path', defaultValue : "./.test_file/test_cm.json" )
       string(name : 'host_job', defaultValue : '1.GLOBAL-SEMAPHORE')
       // string(name : 'host_path', defaultValue : '/var/lib/jenkins/workspace/TEST_SEM/2.HOST')
@@ -60,7 +61,7 @@ pipeline{
           def buf_cmd_list = readJSON file: params.cmd_json_path
           tmp_command.addAll(buf_cmd_list)
 
-          write_json(file_path = "${env.WORKSPACE}/cmd_list.json", data_json = [ 'cmd_list' :[tmp_command]])
+          write_json( "${env.WORKSPACE}/cmd_list.json", [ 'cmd_list' : tmp_command ])
         }
       }
     }
@@ -79,9 +80,8 @@ pipeline{
           }
           host_path = sh(returnStdout: true, script: """
             #!/bin/zsh
-            source /usr/local/Modules/init/zsh
-            module load python/3.7.1
-            python3.7 ${env.WORKSPACE}/libs/Find_host_path.py --host=${params.host_name} --workspace=${env.WORKSPACE} --job_name=${env.JOB_NAME}
+            module load python/python/3.7.1
+            python3.7 ${env.WORKSPACE}/libs/Find_host_path.py --host=${params.host_job} --workspace=${env.WORKSPACE} --job_name=${env.JOB_NAME}
           """).trim()
           print("Host path :: ${host_path}")
           sleep(10)
@@ -101,7 +101,7 @@ pipeline{
             stage("checking_semaphore"){
               stage("register_host"){
                 script{
-                  write_json( file_path = "${host_path}/build/slave_add/${semaphore_file_name}", data_json = [ "${env.WORKSPACE}" : tmp_command.size() ])
+                  write_json( "${host_path}/build/slave_add/${semaphore_file_name}", [ "${env.WORKSPACE}" : tmp_command.size() ])
                 }
               }
               stage("update"){
@@ -133,8 +133,8 @@ pipeline{
           }
           num_buf.each{ i2 ->
             tmp_cmd["${i2}"] = {
-              stage("${i2}"){
-                stage("wating_${i2}"){
+              stage("${tmp_command[i2-1]['name']}"){
+                stage("wating_${tmp_command[i2-1]['name']}"){
                   script{
                     waitUntil{
                       if( ca.get_sem() >= i2){ return true }
@@ -143,16 +143,16 @@ pipeline{
                     sleep(i2*5)
                   }
                 }
-                stage("Running_command_${i2}"){
+                stage("Running_command_${tmp_command[i2-1]['name']}"){
                   script{
-                    print("in running :: ${tmp_command[i2-1]}")
+                    print("in running :: ${tmp_command[i2-1]['cmd']}")
                   }
                 }
                 stage("Update_DB_${i2}"){
                   script{
                     wait_block()
                     print("Update DB data to Dashboard")
-                    write_json( file_path = "${host_path}/build/slave_rm/${semaphore_file_name}_${i2}", data_json = ["${env.WORKSPACE}" : 1])
+                    write_json( "${host_path}/build/slave_rm/${semaphore_file_name}_${i2}", ["${env.WORKSPACE}" : 1])
                     now_q_lengh--
                   }
                 }
@@ -169,7 +169,7 @@ pipeline{
   post{
     always{
       script{
-        write_json( file_path = "${host_path}/build/slave_rm/${semaphore_file_name}_done", data_json = ["${env.WORKSPACE}" : now_q_lengh])
+        write_json( "${host_path}/build/slave_rm/${semaphore_file_name}_done", ["${env.WORKSPACE}" : now_q_lengh])
       }
     }
   }

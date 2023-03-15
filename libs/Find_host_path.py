@@ -17,6 +17,7 @@ def main(args : parser):
   while(True):
     for each in os.listdir(host_workspace):
       tmp_path = host_workspace + each + "/build/running.txt"
+      print(host_workspace + each + "/build/running.txt")
       if os.path.isfile(tmp_path):
         with open(tmp_path, 'r') as f_running:
           if "TRUE" in f_running.read():
