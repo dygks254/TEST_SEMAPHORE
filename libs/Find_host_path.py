@@ -13,19 +13,18 @@ def main(args : parser):
   for each in (list((args.host).split("/")))[:-1]:
     buf_host_path += each
   host_workspace = jenkins_workspcae + buf_host_path
-  
+
   while(True):
     for each in os.listdir(host_workspace):
       tmp_path = host_workspace + each + "/build/running.txt"
-      print(host_workspace + each + "/build/running.txt")
       if os.path.isfile(tmp_path):
         with open(tmp_path, 'r') as f_running:
           if "TRUE" in f_running.read():
             print(host_workspace + each)
+
             return 0
-  
+
 if __name__=="__main__":
   args = parser().parse_args()
   main(args = args)
-  
-   
+

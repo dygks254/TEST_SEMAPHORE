@@ -74,6 +74,7 @@ pipeline{
             def job = Hudson.instance.getJob(name)
             items.add(job);
             if(items != null){
+              print(job)
               return true
             }
             return false
@@ -113,7 +114,7 @@ pipeline{
                       def tmp_file = readJSON file: 'semaphore_reg'
                       def res = tmp_file[0]
                       sh("rm semaphore_reg")
-                      ca.updatenumber(number = res)
+                      ca.updatenumber(res)
                       print("Update available semaphore from host ${res}")
                       now_q_lengh+=res
                     }
@@ -146,6 +147,7 @@ pipeline{
                 stage("Running_command_${tmp_command[i2-1]['name']}"){
                   script{
                     print("in running :: ${tmp_command[i2-1]['cmd']}")
+                    sh(script : tmp_command[i2-1]['cmd'])
                   }
                 }
                 stage("Update_DB_${i2}"){

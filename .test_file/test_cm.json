@@ -1,17 +1,17 @@
 [
   {
       "name": "backdoor0_memset_test",
-      "cmd": "srun -p PALL --time=10:00:00 make -C /user/jenkins/workspace/TEST_JENKINS/TEST_CI/soc-rhea-semifive/verif/scripts DUT=FULL TEST=backdoor0_memset_test COV_SIM=true",
+      "cmd": "sleep 5",
       "dut": "FULL"
   },
   {
       "name": "backdoor0_memrand_test",
-      "cmd": "srun -p PALL --time=10:00:00 make -C /user/jenkins/workspace/TEST_JENKINS/TEST_CI/soc-rhea-semifive/verif/scripts DUT=FULL TEST=backdoor0_memrand_test COV_SIM=true",
+      "cmd": "sleep 2",
       "dut": "FULL"
   },
   {
       "name": "backdoor0_bin_file_test",
-      "cmd": "srun -p PALL --time=10:00:00 make -C /user/jenkins/workspace/TEST_JENKINS/TEST_CI/soc-rhea-semifive/verif/scripts DUT=FULL TEST=backdoor0_bin_file_test COV_SIM=true",
+      "cmd": "sleep 1",
       "dut": "FULL"
   }
 ]

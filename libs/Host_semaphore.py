@@ -68,6 +68,8 @@ def update_list(args : parser, source_data : dict, type : str):
       else:
           Configuration.configuration['running_q'] -= tmp_qnum[tmp_key]
           Configuration.configuration['dis_semaphore'][tmp_key] -= tmp_qnum[tmp_key]
+          # if (Configuration.configuration['dis_semaphore'][tmp_key] == 0) and (tmp_key not in Configuration.configuration['slave_list']):
+          #   Configuration.configuration['dis_semaphore'].pop(tmp_key)
     os.remove(tmp_path)
 
   update_json(file=source_data['q_file'], buf_configuration=Configuration.configuration)
