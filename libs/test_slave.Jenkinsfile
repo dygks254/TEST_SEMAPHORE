@@ -68,21 +68,35 @@ pipeline{
     stage("Host_checking"){
       steps{
         script{
+          def host_fullname
           waitUntil{
             name = params.host_job
             def items = new LinkedHashSet();
             def job = Hudson.instance.getJob(name)
-            items.add(job);
+            Jenkins.instance.getAllItems(AbstractItem.class).each{
+              println it.fullName + " - " + it.class
+              if( (it.fullName).contains(params.host_job) ){
+                items.add(it.fullName);
+                print("Fine global semaphore :: ${it.fullName}")
+                Jenkins.instance.getItemByFullName(it.fullName).builds.each { build ->
+                    if (build.building) {
+                      host_fullname = it.fullName
+                      print("Build ${host_fullname} -- ${build.building} is currently running")
+                    }
+                }
+              }
+            };
             if(items != null){
               print(job)
               return true
             }
+            sleep(100)
             return false
           }
           host_path = sh(returnStdout: true, script: """
             #!/bin/zsh
             module load python/python/3.7.1
-            python3.7 ${env.WORKSPACE}/libs/Find_host_path.py --host=${params.host_job} --workspace=${env.WORKSPACE} --job_name=${env.JOB_NAME}
+            python3.7 ${env.WORKSPACE}/libs/Find_host_path.py --host=${host_fullname} --workspace=${env.WORKSPACE} --job_name=${env.JOB_NAME}
           """).trim()
           print("Host path :: ${host_path}")
           sleep(10)
