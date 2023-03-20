@@ -1,0 +1,9 @@
+{
+    "build_path": "/home/yohan/PROJECT/Jenkins/global-semaphore/build",
+    "q_file": "/home/yohan/PROJECT/Jenkins/global-semaphore/build/semaphore_q.json",
+    "total_q": 10,
+    "r_file": "/home/yohan/PROJECT/Jenkins/global-semaphore/build/running.txt",
+    "add_list": "/home/yohan/PROJECT/Jenkins/global-semaphore/build/slave_add",
+    "rm_list": "/home/yohan/PROJECT/Jenkins/global-semaphore/build/slave_rm",
+    "status": "/home/yohan/PROJECT/Jenkins/global-semaphore/build/status.txt"
+}

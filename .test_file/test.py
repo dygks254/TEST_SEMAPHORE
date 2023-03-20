@@ -19,16 +19,16 @@ def add():
     json.dump(tmp, f)
 
 def rm():
-  tmp = { f"{file_path}/../build_slave1" : 4 }
+  tmp = { f"{file_path}/../build_slave1" : 6 }
 
   with open( f"{file_path}/../build/slave_rm/test3", 'w' ) as f:
     json.dump(tmp, f)
 
 
-  tmp = { f"{file_path}/../build_slave2" : 5 }
+  tmp = { f"{file_path}/../build_slave2" : 0 }
 
-  # with open( f"{file_path}/../build/slave_rm/test2", 'w' ) as f:
-  #   json.dump(tmp, f)
+  with open( f"{file_path}/../build/slave_rm/test2", 'w' ) as f:
+    json.dump(tmp, f)
 
 
 globals()[sys.argv[1]]()

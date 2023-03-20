@@ -1,25 +1,25 @@
 [
     {
         "name": "backdoor0_memset_test",
-        "cmd": "echo 'srun -p PALL --time=1:00:00 make -C /user/jenkins/workspace/TEST_JENKINS/TEST_CI/soc-rhea-semifive/verif/scripts sim DUT=FULL TEST=backdoor0_memset_test COV_SIM=true'",
+        "cmd": "srun -p PALL --time=00:00:01 sleep 600",
         "dut": "FULL",
-        "sim_path": "/user/jenkins/workspace/TEST_JENKINS/TEST_CI/build/execute/backdoor0_memset_test",
+        "sim_path": "/user/jenkins/workspace/TEST_JENKINS/TEST_CI/build/execute",
         "sim_summary_path": "/user/jenkins/LOGIC_CI/PROJECT/RHEA_EVT1/execute",
         "slurm_cmd": "srun -p PALL --time=1:00:00 "
     },
     {
         "name": "backdoor0_memrand_test",
-        "cmd": "echo 'srun -p PALL --time=1:00:00 make -C /user/jenkins/workspace/TEST_JENKINS/TEST_CI/soc-rhea-semifive/verif/scripts sim DUT=FULL TEST=backdoor0_memrand_test COV_SIM=true'",
+        "cmd": "srun -p PALL --time=00:00:01 sleep 10",
         "dut": "FULL",
-        "sim_path": "/user/jenkins/workspace/TEST_JENKINS/TEST_CI/build/execute/backdoor0_memrand_test",
+        "sim_path": "/user/jenkins/workspace/TEST_JENKINS/TEST_CI/build/execute",
         "sim_summary_path": "/user/jenkins/LOGIC_CI/PROJECT/RHEA_EVT1/execute",
         "slurm_cmd": "srun -p PALL --time=1:00:00 "
     },
     {
         "name": "backdoor0_bin_file_test",
-        "cmd": "echo 'srun -p PALL --time=1:00:00 make -C /user/jenkins/workspace/TEST_JENKINS/TEST_CI/soc-rhea-semifive/verif/scripts sim DUT=FULL TEST=backdoor0_bin_file_test COV_SIM=true'",
+        "cmd": "srun -p PALL --time=00:00:03 sleep 10",
         "dut": "FULL",
-        "sim_path": "/user/jenkins/workspace/TEST_JENKINS/TEST_CI/build/execute/backdoor0_bin_file_test",
+        "sim_path": "/user/jenkins/workspace/TEST_JENKINS/TEST_CI/build/execute",
         "sim_summary_path": "/user/jenkins/LOGIC_CI/PROJECT/RHEA_EVT1/execute",
         "slurm_cmd": "srun -p PALL --time=1:00:00 "
     }
