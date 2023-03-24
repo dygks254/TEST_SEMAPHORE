@@ -1,11 +1,13 @@
 import groovy.json.*
 
 configuration = [
-  'agent' : "any"
+  'agent' : "ariel"
 ]
 
 pipeline {
-  agent any
+  agent {
+      label configuration['agent']
+  }
   parameters{
       string(name: 'semaphore', defaultValue: '10')
   }
@@ -16,7 +18,7 @@ pipeline {
 
         checkout([
             $class: 'GitSCM'
-          , branches: [[name: 'MGA']]
+          , branches: [[name: 'MGA-312']]
           , userRemoteConfigs: [[url: env.GIT_URL]]])
 
         script{
@@ -41,9 +43,9 @@ pipeline {
         script{
           sh"""
             #!/bin/zsh
-            source /tools/MODULECMD/Modules/init/zsh
-            module load python/3.7.1
-            python3.7 libs/Host_semaphore.py --source ${configuration_file}
+            module purge
+            module load python/python/3.7.1
+            python3.7 libs/Host_semaphore.py --source ${configuration_file} > test_log.log
           """
         }
       }

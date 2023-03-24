@@ -64,8 +64,14 @@ def update_list(args : parser, source_data : dict, type : str):
       if type == "add":
         if tmp_key not in Configuration.configuration['slave_list'].keys():
           Configuration.configuration['slave_list'][tmp_key] = tmp_qnum[tmp_key]
-      else:
-          Configuration.configuration['running_q'] -= tmp_qnum[tmp_key]
+          Configuration.configuration['dis_semaphore'][tmp_key] = 0
+      elif type == "rm":
+        print(Configuration.configuration['slave_list'].keys())
+        Configuration.configuration['running_q'] -= tmp_qnum[tmp_key]
+        Configuration.configuration['running_q'] = 0 if Configuration.configuration['running_q'] < 0 else Configuration.configuration['running_q']
+        if( tmp_key in Configuration.configuration['dis_semaphore'].keys() ):
+          Configuration.configuration['dis_semaphore'][tmp_key] -= tmp_qnum[tmp_key]
+
     os.remove(tmp_path)
 
   update_json(file=source_data['q_file'], buf_configuration=Configuration.configuration)
@@ -82,21 +88,32 @@ def distribute_sem( args : parser, source_data: dict):
     print(f"{key} : {value} ")
     key_file = f"{key}/semaphore_reg"
     if not os.path.isfile(key_file) :
-      av_q =  Configuration.configuration['total_q'] - Configuration.configuration['running_q']
+      av_q =  tmp_dict['total_q'] - tmp_dict['running_q']
       if av_q >= value:
         trans_q = value
-        remain_jobs_q = 0
         tmp_dict['slave_list'].pop(key)
       else:
         trans_q = av_q
-        remain_jobs_q = value - av_q
-        tmp_dict['slave_list'][key] = remain_jobs_q
+        tmp_dict['slave_list'][key] = value - av_q
+      # if(key not in tmp_dict['dis_semaphore'].keys() ):
+      #   tmp_dict['dis_semaphore'][key] = 0
+      tmp_dict['dis_semaphore'][key] += trans_q
       tmp_dict['running_q'] += trans_q
       with open(key_file, 'w') as f_reg:
         json.dump([trans_q], f_reg, indent=2)
 
     else:
       print(f"--- file exist {key_file}")
+
+  Configuration.configuration.update(tmp_dict)
+  update_json(file=source_data['q_file'], buf_configuration=Configuration.configuration)
+
+def rm_dis( args : parser, source_data : dict ):
+
+  tmp_dict = Configuration.data()
+  for each in Configuration.configuration['dis_semaphore'].keys():
+    if( each not in tmp_dict['slave_list'].keys() ):
+      tmp_dict['dis_semaphore'].pop(each)
 
   Configuration.configuration.update(tmp_dict)
   update_json(file=source_data['q_file'], buf_configuration=Configuration.configuration)
@@ -115,15 +132,16 @@ def main( args : parser, source_data : dict ):
      'total_q' : source_data['total_q']
     ,'running_q' : args.running
     ,'slave_list' : {}
+    ,'dis_semaphore' : {}
   }))
 
   print(Configuration.configuration)
 
   running_status = "TRUE"
   while( running_status != "FALSE" ):
-    time.sleep(2)
+    time.sleep(600)
     write_file(file_path=source_data['status'], text="BLOCK")
-    time.sleep(1)
+    time.sleep(10)
     update_list(args=args, source_data=source_data, type="add")
     update_list(args=args, source_data=source_data, type="rm")
     with open(source_data['r_file'], 'r') as f_status:
@@ -133,6 +151,7 @@ def main( args : parser, source_data : dict ):
         return 0
 
     distribute_sem(args=args, source_data=source_data)
+    # rm_dis(args=args, source_data=source_data)
 
     write_file(file_path=source_data['status'], text="OPEN")
 

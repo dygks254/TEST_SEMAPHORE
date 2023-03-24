@@ -1,41 +1,26 @@
 [
- "test01"
-,"test02"
-,"test03"
-,"test04"
-,"test05"
-,"test06"
-,"test07"
-,"test08"
-,"test09"
-,"test10"
-,"test11"
-,"test22"
-,"test23"
-,"test24"
-,"test25"
-,"test26"
-,"test27"
-,"test28"
-,"test29"
-,"test30"
-,"test31"
-,"test32"
-,"test33"
-,"test34"
-,"test35"
-,"test36"
-,"test37"
-,"test38"
-,"test39"
-,"test40"
-,"test41"
-,"test42"
-,"test43"
-,"test44"
-,"test45"
-,"test46"
-,"test47"
-,"test48"
-,"test49"
+    {
+        "name": "backdoor0_memset_test",
+        "cmd": "srun -p PALL --time=00:00:01 sleep 600",
+        "dut": "FULL",
+        "sim_path": "/user/jenkins/workspace/TEST_JENKINS/TEST_CI/build/execute",
+        "sim_summary_path": "/user/jenkins/LOGIC_CI/PROJECT/RHEA_EVT1/execute",
+        "slurm_cmd": "srun -p PALL --time=1:00:00 "
+    },
+    {
+        "name": "backdoor0_memrand_test",
+        "cmd": "srun -p PALL --time=00:00:01 sleep 10",
+        "dut": "FULL",
+        "sim_path": "/user/jenkins/workspace/TEST_JENKINS/TEST_CI/build/execute",
+        "sim_summary_path": "/user/jenkins/LOGIC_CI/PROJECT/RHEA_EVT1/execute",
+        "slurm_cmd": "srun -p PALL --time=1:00:00 "
+    },
+    {
+        "name": "backdoor0_bin_file_test",
+        "cmd": "srun -p PALL --time=00:00:03 sleep 10",
+        "dut": "FULL",
+        "sim_path": "/user/jenkins/workspace/TEST_JENKINS/TEST_CI/build/execute",
+        "sim_summary_path": "/user/jenkins/LOGIC_CI/PROJECT/RHEA_EVT1/execute",
+        "slurm_cmd": "srun -p PALL --time=1:00:00 "
+    }
 ]

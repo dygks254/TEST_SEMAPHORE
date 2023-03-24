@@ -8,23 +8,22 @@ def parser():
   return parse
 
 def main(args : parser):
-  jenkins_workspcae = re.sub(f"{args.job_name}.*", "", args.workspace )
+  jenkins_workspace = re.sub(f"/{args.job_name}.*", "", args.workspace )
   buf_host_path = ""
   for each in (list((args.host).split("/")))[:-1]:
-    buf_host_path += each
-  host_workspace = jenkins_workspcae + buf_host_path
-  
+    buf_host_path += f"/{each}"
+  host_workspace = jenkins_workspace + buf_host_path
+
   while(True):
     for each in os.listdir(host_workspace):
-      tmp_path = host_workspace + each + "/build/running.txt"
+      tmp_path = host_workspace + '/' + each + "/build/running.txt"
       if os.path.isfile(tmp_path):
         with open(tmp_path, 'r') as f_running:
           if "TRUE" in f_running.read():
-            print(host_workspace + each)
+            print(host_workspace + '/' +  each)
+
             return 0
-  
+
 if __name__=="__main__":
   args = parser().parse_args()
   main(args = args)
-  
-   
