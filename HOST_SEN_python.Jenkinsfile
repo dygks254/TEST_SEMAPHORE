@@ -18,7 +18,7 @@ pipeline {
 
         checkout([
             $class: 'GitSCM'
-          , branches: [[name: 'MGA-312']]
+          , branches: [[name: 'master']]
           , userRemoteConfigs: [[url: env.GIT_URL]]])
 
         script{
