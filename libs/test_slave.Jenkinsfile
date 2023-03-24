@@ -53,7 +53,7 @@ pipeline{
           cleanWs()
           checkout([
             $class: 'GitSCM'
-          , branches: [[name: 'MGA-312']]
+          , branches: [[name: 'master']]
           , userRemoteConfigs: [[url: env.GIT_URL]]])
 
           def tmp_job_name = "${JOB_NAME.substring(JOB_NAME.lastIndexOf('/') + 1, JOB_NAME.length())}"
