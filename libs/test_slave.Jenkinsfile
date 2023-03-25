@@ -57,7 +57,7 @@ pipeline{
           , userRemoteConfigs: [[url: env.GIT_URL]]])
 
           def tmp_job_name = "${JOB_NAME.substring(JOB_NAME.lastIndexOf('/') + 1, JOB_NAME.length())}"
-          semaphore_file_name = "${params.projcet}_${tmp_job_name}_${env.BUILD_NUMBER}"
+          semaphore_file_name = "${params.project}_${tmp_job_name}_${env.BUILD_NUMBER}"
 
           def buf_cmd_list = readJSON file: params.cmd_json_path
           tmp_command.addAll(buf_cmd_list)
@@ -207,11 +207,14 @@ pipeline{
                     res_c_status = sh(script:"readlink -f ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*", returnStatus:true)
                     def res_status = sh(script:"readlink -f ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log", returnStatus:true)
 
+                    def last_sim_path = "${tmp_command[i2-1]['sim_summary_path']}/${params.test_group}/${tmp_command[i2-1]['name']}"
+
                     if( curl_sim_result == "SLRUM_FAILED" ){
                       print("Slurm failed")
                     }else if( res_c_status != 0){
                       print("Directory not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*")
                       curl_sim_result = "C_FAILED"
+                      last_sim_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
                     }else if( res_status != 0){
                       print("File not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log")
                       curl_sim_result = "FAILED"
@@ -238,7 +241,7 @@ pipeline{
                               "test_list" : "${params.test_group}",
                               "name" : "${tmp_command[i2-1]['name']}",
                               "Result" : "${curl_sim_result}",
-                              "SimPath" : "${tmp_command[i2-1]['sim_summary_path']}/${params.test_group}/${tmp_command[i2-1]['name']}"
+                              "SimPath" : "${last_sim_path}"
                             }' http://portal:8002/jenkins_simulation/
                     """)
                   }
