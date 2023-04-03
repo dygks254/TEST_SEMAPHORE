@@ -44,6 +44,7 @@ pipeline{
       string(name : 'host_job', defaultValue : '1.GLOBAL-SEMAPHORE')
       string(name : 'project', defaultValue : 'RHEA_EVT1')
       string(name : 'summary_execute', defaultValue : '/user/jenkins/LOGIC_CI/PROJECT/RHEA_EVT1/execute')
+      string(name : 'commit', defaultValue : '')
   }
 
   stages{
@@ -185,7 +186,8 @@ pipeline{
                               "name" : "${tmp_command[i2-1]['name']}",
                               "Result" : "RUNNING",
                               "SimPath" : "${tmp_command[i2-1]['sim_path']}",
-                              "Command" : "${tmp_command[i2-1]['slurm_cmd']}"
+                              "Command" : "${tmp_command[i2-1]['slurm_cmd']}",
+                              "Commit" : "${params.commit}"
                             }' http://portal:8002/jenkins_simulation/
                     """)
                   }
