@@ -206,12 +206,13 @@ pipeline{
                   script{
                     wait_block()
 
-                    res_c_status = sh(script:"readlink -f ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*", returnStatus:true)
+                    res_execute_status = sh(script:"readlink -f ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*", returnStatus:true)
+                    res_c_status = sh(script:"readlink -f ${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}/debug/${tmp_command[i2-1]['name']}.hex", returnStatus:true)
                     def res_status = sh(script:"readlink -f ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log", returnStatus:true)
 
                     def last_sim_path = "${tmp_command[i2-1]['sim_summary_path']}/${params.test_group}/${tmp_command[i2-1]['name']}"
 
-                    if( curl_sim_result == "SLRUM_FAILED" ){
+                    if( ((curl_sim_result == "SLRUM_FAILED") || (res_execute_status != 0)) && ( res_c_status == 0) ){
                       print("Slurm failed")
                     }else if( res_c_status != 0){
                       print("Directory not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*")
