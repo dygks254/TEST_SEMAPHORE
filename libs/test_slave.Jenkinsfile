@@ -176,7 +176,7 @@ pipeline{
                       if( ca.get_sem() >= i2){ return true }
                       return false
                     }
-                    sleep(i2*100)
+                    sleep(i2*20)
                     sh("""
                         curl -X POST \
                             -H "Content-Type: application/json" \
@@ -212,11 +212,15 @@ pipeline{
 
                     def last_sim_path = "${tmp_command[i2-1]['sim_summary_path']}/${params.test_group}/${tmp_command[i2-1]['name']}"
 
-                    if( ((curl_sim_result == "SLRUM_FAILED") || (res_execute_status != 0)) && ( res_c_status == 0) ){
+                    if( curl_sim_result == "SLRUM_FAILED" ){
                       print("Slurm failed")
                     }else if( res_c_status != 0){
                       print("Directory not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*")
                       curl_sim_result = "C_FAILED"
+                      last_sim_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
+                    }else if( (res_execute_status != 0)  ){
+                      print("Directory not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*  ->> SLURM sqeue failed")
+                      curl_sim_result = "SLRUM_FAILED_QUEUE"
                       last_sim_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
                     }else if( res_status != 0){
                       print("File not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log")

@@ -71,7 +71,7 @@ def update_list(args : parser, source_data : dict, type : str):
         Configuration.configuration['running_q'] = 0 if Configuration.configuration['running_q'] < 0 else Configuration.configuration['running_q']
         if( tmp_key in Configuration.configuration['dis_semaphore'].keys() ):
           Configuration.configuration['dis_semaphore'][tmp_key] -= tmp_qnum[tmp_key]
-      
+
       update_json(file=source_data['q_file'], buf_configuration=Configuration.configuration)
 
     os.remove(tmp_path)
@@ -102,7 +102,7 @@ def distribute_sem( args : parser, source_data: dict):
       tmp_dict['running_q'] += trans_q
       with open(key_file, 'w') as f_reg:
         json.dump([trans_q], f_reg, indent=2)
-
+      time.sleep(120)
     else:
       print(f"--- file exist {key_file}")
 
