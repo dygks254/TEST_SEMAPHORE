@@ -78,12 +78,12 @@ pipeline{
             Jenkins.instance.getAllItems(AbstractItem.class).each{
               // println it.fullName + " - " + it.class
               if( (it.fullName).contains(params.host_job) ){
-                print("Find global semaphore :: ${it.fullName}")
+                // print("Find global semaphore :: ${it.fullName}")
                 Jenkins.instance.getItemByFullName(it.fullName).builds.each { build ->
                     if (build.building) {
                       // items.add(it.fullName);
                       host_fullname = it.fullName
-                      print("Build ${host_fullname} -- ${build.building} is currently running")
+                      // print("Build ${host_fullname} -- ${build.building} is currently running")
                     }
                 }
               }
@@ -220,7 +220,8 @@ pipeline{
                       last_sim_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
                     }else if( (res_execute_status != 0)  ){
                       print("Directory not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*  ->> SLURM sqeue failed")
-                      curl_sim_result = "SLRUM_FAILED_QUEUE"
+                      // curl_sim_result = "SLRUM_FAILED_QUEUE"
+                      curl_sim_result = "C_FAILED"
                       last_sim_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
                     }else if( res_status != 0){
                       print("File not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log")
