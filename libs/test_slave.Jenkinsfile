@@ -176,7 +176,7 @@ pipeline{
                       if( ca.get_sem() >= i2){ return true }
                       return false
                     }
-                    sleep(i2*20)
+                    sleep(i2*600)
                     sh("""
                         curl -X POST \
                             -H "Content-Type: application/json" \
