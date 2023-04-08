@@ -102,7 +102,7 @@ def distribute_sem( args : parser, source_data: dict):
       tmp_dict['running_q'] += trans_q
       with open(key_file, 'w') as f_reg:
         json.dump([trans_q], f_reg, indent=2)
-      time.sleep(120)
+      time.sleep(2)
     else:
       print(f"--- file exist {key_file}")
 

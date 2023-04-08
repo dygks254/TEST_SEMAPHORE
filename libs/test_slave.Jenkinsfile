@@ -168,6 +168,7 @@ pipeline{
           num_buf.each{ i2 ->
             tmp_cmd["${i2}"] = {
               stage("${tmp_command[i2-1]['name']}"){
+                def rsync_path = ""
                 def curl_sim_result = ""
                 def res_c_status
                 stage("wating_${tmp_command[i2-1]['name']}"){
@@ -176,13 +177,13 @@ pipeline{
                       if( ca.get_sem() >= i2){ return true }
                       return false
                     }
-                    sleep(i2*300)
+                    sleep(i2*120)
                     sh("""
                         curl -X POST \
                             -H "Content-Type: application/json" \
                             -d '{
                               "project" : "${params.project}",
-                              "test_list" : "${params.test_group}",
+                              "test_list" : "${tmp_command[i2-1]['test_list']}",
                               "name" : "${tmp_command[i2-1]['name']}",
                               "Result" : "RUNNING",
                               "SimPath" : "${tmp_command[i2-1]['sim_path']}",
@@ -206,36 +207,61 @@ pipeline{
                   script{
                     wait_block()
 
-                    res_execute_status = sh(script:"readlink -f ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*", returnStatus:true)
-                    res_c_status = sh(script:"readlink -f ${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}/debug/${tmp_command[i2-1]['name']}.hex", returnStatus:true)
-                    def res_status = sh(script:"readlink -f ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log", returnStatus:true)
+                    res_execute_status = sh(script:"readlink -f ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}.*", returnStatus:true)
+                    // res_c_status = sh(script:"readlink -f ${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}/debug/${tmp_command[i2-1]['name']}.hex", returnStatus:true)
+                    def res_status = sh(script:"readlink -f ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}.*/status.log", returnStatus:true)
 
                     def last_sim_path = "${tmp_command[i2-1]['sim_summary_path']}/${params.test_group}/${tmp_command[i2-1]['name']}"
 
-                    if( curl_sim_result == "SLRUM_FAILED" ){
-                      print("Slurm failed")
-                    }else if( res_c_status != 0){
-                      print("Directory not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*")
-                      curl_sim_result = "C_FAILED"
-                      last_sim_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
-                    }else if( (res_execute_status != 0)  ){
-                      print("Directory not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*  ->> SLURM sqeue failed")
-                      // curl_sim_result = "SLRUM_FAILED_QUEUE"
-                      curl_sim_result = "C_FAILED"
-                      last_sim_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
-                    }else if( res_status != 0){
-                      print("File not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log")
-                      curl_sim_result = "FAILED"
-                    }else{
-                      print("File exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log")
-                      def status_path = sh(script:"cat ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log", returnStdout: true)
-                      // def sim_result = readFile(status_path)
-                      if(status_path.contains("PASS")){
-                        curl_sim_result = "PASSED"
-                      }else if( curl_sim_result != "SLRUM_FAILED" ){
-                        curl_sim_result = "FAILED"
+                    
+                    if( res_execute_status == 0 ){
+                      if( (res_status != 0) ){
+                          print("Simulation slurm failed")
+                          curl_sim_result = "SLRUM_FAILED"
+                      }else{
+                        def status_path = sh(script:"cat ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}.*/status.log", returnStdout: true)
+                        if(status_path.contains("PASS")){
+                          curl_sim_result = "PASSED"
+                          print("Simulation passed")
+                        }else{
+                          curl_sim_result = "FAILED"
+                          print("Simulation failed")
+                        }
                       }
+                      rsync_path = sh(script:""" find ${tmp_command[i2-1]['sim_path']} -name "${tmp_command[i2-1]['name']}*" -type d -regex ".+\\.[0-9]+" -printf '%T@\t%p\n' | perl -ane '@m=@F if (\$F[0]>\$m[0]); END{print \$m[1];}' """,returnStdout:true)
+                    }else if( fileExists("${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}/debug/${tmp_command[i2-1]['name']}.hex") == false ){
+                      curl_sim_result = "C_FAILED"
+                      rsync_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
+                    }else{
+                      curl_sim_result = "SLURM_FAILED_QUEUE"
+                      rsync_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
                     }
+
+
+                    // if( curl_sim_result == "SLRUM_FAILED" ){
+                    //   print("Slurm failed")
+                    // }else if( res_c_status != 0){
+                    //   print("Directory not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*")
+                    //   curl_sim_result = "C_FAILED"
+                    //   last_sim_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
+                    // }else if( (res_execute_status != 0)  ){
+                    //   print("Directory not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*  ->> SLURM sqeue failed")
+                    //   // curl_sim_result = "SLRUM_FAILED_QUEUE"
+                    //   curl_sim_result = "C_FAILED"
+                    //   last_sim_path = "${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}"
+                    // }else if( res_status != 0){
+                    //   print("File not exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log")
+                    //   curl_sim_result = "FAILED"
+                    // }else{
+                    //   print("File exit :: ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log")
+                    //   def status_path = sh(script:"cat ${tmp_command[i2-1]['sim_path']}/${tmp_command[i2-1]['name']}*/status.log", returnStdout: true)
+                    //   // def sim_result = readFile(status_path)
+                    //   if(status_path.contains("PASS")){
+                    //     curl_sim_result = "PASSED"
+                    //   }else if( curl_sim_result != "SLRUM_FAILED" ){
+                    //     curl_sim_result = "FAILED"
+                    //   }
+                    // }
 
                     print("Update DB data to Dashboard")
                     write_json( "${host_path}/build/slave_rm/${semaphore_file_name}_${i2}", ["${env.WORKSPACE}" : 1])
@@ -246,7 +272,7 @@ pipeline{
                             -H "Content-Type: application/json" \
                             -d '{
                               "project" : "${params.project}",
-                              "test_list" : "${params.test_group}",
+                              "test_list" : "${tmp_command[i2-1]['test_list']}",
                               "name" : "${tmp_command[i2-1]['name']}",
                               "Result" : "${curl_sim_result}",
                               "SimPath" : "${last_sim_path}"
@@ -255,13 +281,18 @@ pipeline{
                   }
                 }
                 stage("Update_COV_${i2}"){
-                  if(res_c_status == 0){
-                    print("Update COVERAGE data to Dashboard")
-                    def res_excute_path = sh(script:""" find ${tmp_command[i2-1]['sim_path']} -name "${tmp_command[i2-1]['name']}*" -type d -regex ".+\\.[0-9]+" -printf '%T@\t%p\n' | perl -ane '@m=@F if (\$F[0]>\$m[0]); END{print \$m[1];}' """,returnStdout:true)
-                    sh(script:"nice -n 10 rsync -a --progress --delete ${res_excute_path}/  ${params.summary_execute}/${params.test_group}/${tmp_command[i2-1]['name']}")
-                  }else{
-                    print("Can't Update COVERAGE data to Dashboard")
-                  }
+                  // if(res_execute_status == 0){
+                  //   print("Update COVERAGE data to Dashboard")
+                  //   def res_excute_path = sh(script:""" find ${tmp_command[i2-1]['sim_path']} -name "${tmp_command[i2-1]['name']}*" -type d -regex ".+\\.[0-9]+" -printf '%T@\t%p\n' | perl -ane '@m=@F if (\$F[0]>\$m[0]); END{print \$m[1];}' """,returnStdout:true)
+                  //   sh(script:"nice -n 10 rsync -a --progress --delete ${res_excute_path}/  ${params.summary_execute}/${params.test_group}/${tmp_command[i2-1]['name']}")
+                  // }if(res_c_status == 0 ){
+                  //   print("Update COVERAGE data to Dashboard")
+                  //   def res_c_path = sh(script:"readlink -f ${tmp_command[i2-1]['c_comp_path']}/${tmp_command[i2-1]['name']}/", returnStatus:true)
+                  //   sh(script:"nice -n 10 rsync -a --progress --delete ${res_excute_path}/  ${params.summary_execute}/${params.test_group}/${tmp_command[i2-1]['name']}")
+                  // }else{
+                  //   print("Can't Update COVERAGE data to Dashboard")
+                  // }
+                  sh(script:"nice -n 10 rsync -a --progress --delete ${rsync_path}/  ${params.summary_execute}/${params.test_group}/${tmp_command[i2-1]['name']}")
                   simulation_result["${summary_execute}/${params.test_group}/${tmp_command[i2-1]['name']}"] = curl_sim_result
                   write_json( "${summary_execute}/${params.test_group}/result/latest_used.json", simulation_result )
                 }
